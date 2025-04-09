@@ -11,6 +11,7 @@ class _LearnAlphabetScreenState extends State<LearnAlphabetScreen> {
   final FlutterTts flutterTts = FlutterTts();
   String selectedLetter = 'A';
   List<Offset?> points = [];
+  late Path path;
 
   final Map<String, String> letterToWord = {
     'A': 'Ant 🐜',
@@ -63,7 +64,8 @@ class _LearnAlphabetScreenState extends State<LearnAlphabetScreen> {
   void _onLetterTap(String letter) {
     setState(() {
       selectedLetter = letter;
-      points.clear();
+      points.clear();  // Clear previous drawing
+      path = Path();  // Reset path
     });
     _speakLetter();
   }
@@ -71,6 +73,7 @@ class _LearnAlphabetScreenState extends State<LearnAlphabetScreen> {
   void _clearDrawing() {
     setState(() {
       points.clear();
+      path = Path();
     });
   }
 
@@ -88,11 +91,11 @@ class _LearnAlphabetScreenState extends State<LearnAlphabetScreen> {
       ),
       body: Column(
         children: [
-          SizedBox(height: 10),
-          Text(
-            'Tap a Letter!',
-            style: GoogleFonts.comicNeue(fontSize: 24),
-          ),
+          SizedBox(height: 0),
+          // Text(
+          //   'Tap a Letter!',
+          //   style: GoogleFonts.comicNeue(fontSize: 24),
+          // ),
           SizedBox(height: 8),
           Expanded(
             child: GridView.count(
@@ -118,72 +121,68 @@ class _LearnAlphabetScreenState extends State<LearnAlphabetScreen> {
           ),
       
           Container(
-  margin: EdgeInsets.symmetric(horizontal: 30),
-  padding: EdgeInsets.all(4),
-  decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(20),
-    border: Border.all(color: Colors.orangeAccent, width: 4),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.deepOrange.withOpacity(0.2),
-        blurRadius: 10,
-        offset: Offset(0, 5),
-      ),
-    ],
-  ),
-  child: Column(
-    children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-        
-          Column(
-            children: [
-              Text(
-                selectedLetter,  
-                style: GoogleFonts.fredoka(
-                  fontSize: 50,
-                  color: Colors.deepOrangeAccent,
+            margin: EdgeInsets.symmetric(horizontal: 30),
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.orangeAccent, width: 4),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.deepOrange.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: Offset(0, 5),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        Text(
+                          selectedLetter,  
+                          style: GoogleFonts.fredoka(
+                            fontSize: 80,  // Bigger letter size
+                            color: Colors.deepOrangeAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          selectedLetter == 'A' ? '🍎' : '', 
+                          style: TextStyle(fontSize: 50),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Text(
+                  letterToWord[selectedLetter] ?? '',
+                  style: GoogleFonts.comicNeue(
+                      fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+              ],
+            ),
           ),
- 
-          Column(
-            children: [
-              Text(
-                selectedLetter == 'A' ? '🍎' : '', 
-                style: TextStyle(fontSize: 40),
-              ),
-            ],
-          ),
- 
-          Column(
-            children: [
-              Text(
-                letterToWord[selectedLetter] ?? '',  
-                style: GoogleFonts.comicNeue(
-                    fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ],
-  ),
-),
 
           SizedBox(height: 20),
           GestureDetector(
             onPanUpdate: (details) {
               setState(() {
                 points.add(details.localPosition);
+                path.lineTo(details.localPosition.dx, details.localPosition.dy); // Add point to path
               });
             },
             onPanEnd: (_) {
               setState(() {
                 points.add(null); // End the current stroke
+                path = Path();  // Reset path after each stroke
               });
             },
             child: Container(
@@ -198,42 +197,40 @@ class _LearnAlphabetScreenState extends State<LearnAlphabetScreen> {
             ),
           ),
           SizedBox(height: 20),
-         
 
           Row(
-  mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
-  children: [
-    // First button: "Say it again!"
-    ElevatedButton.icon(
-      onPressed: _speakLetter,
-      icon: Icon(Icons.volume_up, color: Colors.white),
-      label: Text(
-        'Say it again!',
-        style: TextStyle(fontSize: 20),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepOrange,
-        shape: StadiumBorder(),
-        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-      ),
-    ),
-    
-    // Second button: "Clear"
-    ElevatedButton(
-      onPressed: _clearDrawing,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.redAccent,
-        shape: StadiumBorder(),
-        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-      ),
-      child: Text(
-        'Clear',
-        style: TextStyle(fontSize: 20, color: Colors.white),
-      ),
-    ),
-  ],
-),
-
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
+            children: [
+              // First button: "Say it again!"
+              ElevatedButton.icon(
+                onPressed: _speakLetter,
+                icon: Icon(Icons.volume_up, color: Colors.white),
+                label: Text(
+                  'Say it again!',
+                  style: TextStyle(fontSize: 20),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                  shape: StadiumBorder(),
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                ),
+              ),
+              
+              // Second button: "Clear"
+              ElevatedButton(
+                onPressed: _clearDrawing,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  shape: StadiumBorder(),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+                child: Text(
+                  'Clear',
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
           SizedBox(height: 20),
         ],
       ),

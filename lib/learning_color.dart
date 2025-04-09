@@ -276,23 +276,17 @@ Container(
           ),
 
           // Confetti effect
-          Positioned.fill(
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirection: pi / 2,
-              numberOfParticles: 60,
-              shouldLoop: false,
+          // Positioned.fill(
+          //   child: ConfettiWidget(
+          //     confettiController: _confettiController,
+          //     blastDirection: pi / 2,
+          //     numberOfParticles: 60,
+          //     shouldLoop: false,
 
-              //  blastDirection: pi / 2,
-              //     maxBlastForce: 5,
-              //     minBlastForce: 1,
-              //     emissionFrequency: 0.03,
-              //     numberOfParticles: 10,
-              //     shouldLoop:true,
-              //     gravity: 0,
-              colors: [Colors.red, Colors.blue, Colors.green, Colors.yellow],
-            ),
-          ),
+      
+          //     colors: [Colors.red, Colors.blue, Colors.green, Colors.yellow],
+          //   ),
+          // ),
         ],
       ),
     );

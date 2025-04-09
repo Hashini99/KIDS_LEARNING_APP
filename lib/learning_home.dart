@@ -7,6 +7,7 @@ import 'package:kids_learning_app/learning_animals.dart';
 import 'package:kids_learning_app/learning_color.dart';
 import 'package:kids_learning_app/learning_shapes.dart';
 import 'package:kids_learning_app/number_learning_screen.dart';
+import 'package:kids_learning_app/story_screen.dart';
 
 // import 'package:lottie/lottie.dart';
 
@@ -57,19 +58,19 @@ class LearningHome extends StatelessWidget {
                   );
                 },
               ),
-              SizedBox(height: 20),
+              // SizedBox(height: 20),
               
-              // Learn Shapes Button
-              AnimatedButton(
-                label: 'Learn Shapes',
-                icon: Icons.shape_line,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ShapeLearningScreen()),
-                  );
-                },
-              ),
+              // // Learn Shapes Button
+              // AnimatedButton(
+              //   label: 'Learn Shapes',
+              //   icon: Icons.shape_line,
+              //   onPressed: () {
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(builder: (context) => ShapeLearningScreen()),
+              //     );
+              //   },
+              // ),
                      SizedBox(height: 20),
                  AnimatedButton(
                 label: 'Learn Numbers',
@@ -81,17 +82,7 @@ class LearningHome extends StatelessWidget {
                   );
                 },
               ),
-              SizedBox(height: 20),
-                    AnimatedButton(
-                label: 'Learn Numbers',
-                icon: Icons.shape_line,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => NumberLearningApp()),
-                  );
-                },
-              ),
+            SizedBox(height: 20),
               // Learn Animals Button
               AnimatedButton(
                 label: 'Learn Alphabets',
@@ -100,6 +91,18 @@ class LearningHome extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => LearnAlphabetScreen()),
+                  );
+                },
+              ),
+                 SizedBox(height: 20),
+              // Learn Animals Button
+              AnimatedButton(
+                label: 'Stories',
+                icon: Icons.pets,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => StoryScreen()),
                   );
                 },
               ),

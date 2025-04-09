@@ -74,7 +74,7 @@ class LearningHome extends StatelessWidget {
                      SizedBox(height: 20),
                  AnimatedButton(
                 label: 'Learn Numbers',
-                icon: Icons.shape_line,
+                icon: Icons.numbers,
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -86,7 +86,7 @@ class LearningHome extends StatelessWidget {
               // Learn Animals Button
               AnimatedButton(
                 label: 'Learn Alphabets',
-                icon: Icons.pets,
+                icon: Icons.book,
                 onPressed: () {
                   Navigator.push(
                     context,

@@ -104,7 +104,7 @@ List<Story> stories = [
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Learn Alphabets', style: GoogleFonts.fredoka(fontSize: 28)),
+        title: Text('Stories', style: GoogleFonts.fredoka(fontSize: 28)),
         centerTitle: true,
       ),
       body: Column(

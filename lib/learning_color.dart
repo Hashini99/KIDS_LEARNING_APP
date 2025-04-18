@@ -20,6 +20,9 @@ class _ColorLearningScreenState extends State<ColorLearningScreen>
     {'name': 'Yellow', 'color': Colors.yellow},
     {'name': 'Purple', 'color': Colors.purple},
     {'name': 'Orange', 'color': Colors.orange},
+    {'name': 'Pink', 'color': Colors.pink},
+    {'name': 'Brown', 'color': Colors.brown},
+    
   ];
 
   late Map<String, dynamic> targetColor;
@@ -110,10 +113,10 @@ class _ColorLearningScreenState extends State<ColorLearningScreen>
         ),
         backgroundColor: Colors.orangeAccent,
         actions: [
-          IconButton(
-            icon: Icon(Icons.exit_to_app, size: 30, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
+          // IconButton(
+          //   icon: Icon(Icons.exit_to_app, size: 30, color: Colors.white),
+          //   onPressed: () => Navigator.pop(context),
+          // ),
         ],
       ),
       body: Stack(
@@ -218,7 +221,7 @@ child: isCorrect
                             ),
                           ),
                           SizedBox(height: 10),
-                          Icon(Icons.star, color: Colors.yellow, size: 60),
+                          // Icon(Icons.star, color: Colors.yellow, size: 60),
                         ],
                       )
                     : SizedBox(),
@@ -253,40 +256,11 @@ Container(
 
 
 
-                // ElevatedButton(
-                //   onPressed: _generateNewChallenge,
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: Colors.blueAccent,
-                //     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(12),
-                //     ),
-                //   ),
-                //   child: Text(
-                //     '🔄 Try Another!',
-                //     style: GoogleFonts.comicNeue(
-                //       fontSize: 22,
-                //       fontWeight: FontWeight.bold,
-                //       color: Colors.white,
-                //     ),
-                //   ),
-                // ),
               ],
             ),
           ),
 
-          // Confetti effect
-          // Positioned.fill(
-          //   child: ConfettiWidget(
-          //     confettiController: _confettiController,
-          //     blastDirection: pi / 2,
-          //     numberOfParticles: 60,
-          //     shouldLoop: false,
-
-      
-          //     colors: [Colors.red, Colors.blue, Colors.green, Colors.yellow],
-          //   ),
-          // ),
+     
         ],
       ),
     );

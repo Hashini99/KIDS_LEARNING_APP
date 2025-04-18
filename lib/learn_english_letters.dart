@@ -14,7 +14,7 @@ class _LearnAlphabetScreenState extends State<LearnAlphabetScreen> {
   late Path path;
 
   final Map<String, String> letterToWord = {
-    'A': 'Ant 🐜',
+    'A': 'Apple 🍎',
     'B': 'Bee 🐝',
     'C': 'Cat 🐱',
     'D': 'Dog 🐶',
@@ -145,7 +145,7 @@ class _LearnAlphabetScreenState extends State<LearnAlphabetScreen> {
                         Text(
                           selectedLetter,  
                           style: GoogleFonts.fredoka(
-                            fontSize: 80,  // Bigger letter size
+                            fontSize: 40,  // Bigger letter size
                             color: Colors.deepOrangeAccent,
                           ),
                         ),

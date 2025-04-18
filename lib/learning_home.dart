@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kids_learning_app/learn_english_letters.dart';
@@ -9,118 +7,102 @@ import 'package:kids_learning_app/learning_shapes.dart';
 import 'package:kids_learning_app/number_learning_screen.dart';
 import 'package:kids_learning_app/story_screen.dart';
 
-// import 'package:lottie/lottie.dart';
-
 class LearningHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true, 
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'Kids Learning',
+          style: GoogleFonts.baloo2(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blueAccent, Colors.pinkAccent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-         image: DecorationImage(
-      image: AssetImage('assets/kids_bg.png'),
-      fit: BoxFit.fill, 
-    ),
-        ),
-        
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Fun Animation
-              // Lottie.asset('assets/animations/kids_animation.json', width: 200, height: 200),
-              
-              // Fun Header Text
-              Text(
-                'Welcome to the Learning World!',
-                 style: GoogleFonts.baloo2(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-              ),
-              SizedBox(height: 30),
-              
-              // Learn Colors Button
-              AnimatedButton(
-                label: 'Learn Colors',
-                icon: Icons.color_lens,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ColorLearningScreen()),
-                  );
-                },
-              ),
-              // SizedBox(height: 20),
-              
-              // // Learn Shapes Button
-              // AnimatedButton(
-              //   label: 'Learn Shapes',
-              //   icon: Icons.shape_line,
-              //   onPressed: () {
-              //     Navigator.push(
-              //       context,
-              //       MaterialPageRoute(builder: (context) => ShapeLearningScreen()),
-              //     );
-              //   },
-              // ),
-                     SizedBox(height: 20),
-                 AnimatedButton(
-                label: 'Learn Numbers',
-                icon: Icons.numbers,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => NumberLearningApp()),
-                  );
-                },
-              ),
-            SizedBox(height: 20),
-              // Learn Animals Button
-              AnimatedButton(
-                label: 'Learn Alphabets',
-                icon: Icons.book,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LearnAlphabetScreen()),
-                  );
-                },
-              ),
-                 SizedBox(height: 20),
-              // Learn Animals Button
-              AnimatedButton(
-                label: 'Stories',
-                icon: Icons.pets,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => StoryScreen()),
-                  );
-                },
-              ),
-            ],
+          image: DecorationImage(
+            image: AssetImage('assets/kids_bg.png'),
+            fit: BoxFit.cover, 
           ),
         ),
+     child: Center(
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      // Text(
+      //   'Welcome to the Learning World!',
+      //   style: GoogleFonts.baloo2(
+      //     fontSize: 28,
+      //     fontWeight: FontWeight.bold,
+      //     color: Colors.white,
+      //   ),
+      // ),
+      SizedBox(height: 30),
+      SizedBox(
+        width: 250,
+        child: AnimatedButton(
+          label: 'Learn Colors',
+          icon: Icons.color_lens,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ColorLearningScreen()),
+            );
+          },
+        ),
+      ),
+      SizedBox(height: 20),
+      SizedBox(
+        width: 250,
+        child: AnimatedButton(
+          label: 'Learn Numbers',
+          icon: Icons.numbers,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NumberLearningApp()),
+            );
+          },
+        ),
+      ),
+      SizedBox(height: 20),
+      SizedBox(
+        width: 250,
+        child: AnimatedButton(
+          label: 'Learn Alphabets',
+          icon: Icons.book,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LearnAlphabetScreen()),
+            );
+          },
+        ),
+      ),
+    ],
+  ),
+),
+
       ),
     );
   }
 }
 
-// Custom Animated Button Widget
 class AnimatedButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onPressed;
 
-  AnimatedButton({
+  const AnimatedButton({
     required this.label,
     required this.icon,
     required this.onPressed,

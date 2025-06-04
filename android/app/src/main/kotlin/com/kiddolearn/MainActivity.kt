@@ -1,5 +1,6 @@
-package com.example.kids_learning_app
+package com.kiddolearn
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+

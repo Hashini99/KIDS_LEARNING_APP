@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.Packaging
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -17,10 +18,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.kids_learning_app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
-
+    namespace = "com.kiddolearn"
+    compileSdk = 35
+    //ndkVersion = flutter.ndkVersion
+     ndkVersion = "27.0.12077973"
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -31,10 +32,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.kids_learning_app"
+        applicationId = "com.kiddolearn"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
+     //   ndk {debugSymbolLevel = "NONE"}
         versionName = flutter.versionName
     }
 
@@ -53,8 +55,12 @@ android {
             isShrinkResources = true
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            fun Packaging.() {
+                jniLibs.keepDebugSymbols.add("**/*.so")
+            }
         }
     }
+    buildToolsVersion = "35.0.0"
 }
 
 flutter {

@@ -1,4 +1,4 @@
-# 🎨📚 kIDDOlEARN – Fun Learning App for Kids
+# 🎨📚 kIDDOLEARN – Fun Learning App for Kids
 
 **kIDDOlEARN** is an engaging and educational mobile app designed for young children. It helps them learn **colors, English alphabets, and numbers** through interactive play, visuals, and text-to-voice feedback. The app also allows children to **practice writing** letters and numbers directly on the screen.
 

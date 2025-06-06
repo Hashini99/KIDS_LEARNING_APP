@@ -1,16 +1,26 @@
-# kids_learning_app
+# 🎨📚 kIDDOlEARN – Fun Learning App for Kids
 
-A new Flutter project.
+**kIDDOlEARN** is an engaging and educational mobile app designed for young children. It helps them learn **colors, English alphabets, and numbers** through interactive play, visuals, and text-to-voice feedback. The app also allows children to **practice writing** letters and numbers directly on the screen.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🌟 Key Features
 
-A few resources to get you started if this is your first Flutter project:
+- 🎨 **Color Picker Activity**  
+  Children can explore and select colors, helping to develop color recognition.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- 🔤 **Alphabet Learning (A–Z)**  
+  Kids learn the English alphabet with each letter spoken out loud using text-to-speech (TTS).
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 🔢 **Number Learning (0–9)**  
+  Each number is introduced with a clear spoken pronunciation using TTS.
+
+- ✍️ **Writing Practice Area**  
+  Children can trace and write letters and numbers using finger drawing on the screen.
+
+- 🔊 **Text-to-Voice (TTS) Support**  
+  Voice feedback enhances learning through auditory reinforcement.
+
+- 🎈 **Kid-Friendly Interface**  
+  Bright, simple, and playful design suitable for young learners.
+

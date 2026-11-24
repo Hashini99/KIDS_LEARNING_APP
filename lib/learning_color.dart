@@ -1,266 +1,255 @@
-
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:provider/provider.dart';
 import 'package:confetti/confetti.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'dart:math';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:kids_learning_app/services/progress_service.dart';
+import 'package:kids_learning_app/services/audio_service.dart';
+import 'package:kids_learning_app/theme/app_theme.dart';
 
 class ColorLearningScreen extends StatefulWidget {
+  const ColorLearningScreen({super.key});
+
   @override
-  _ColorLearningScreenState createState() => _ColorLearningScreenState();
+  State<ColorLearningScreen> createState() => _ColorLearningScreenState();
 }
 
 class _ColorLearningScreenState extends State<ColorLearningScreen>
     with SingleTickerProviderStateMixin {
   final List<Map<String, dynamic>> colors = [
-    {'name': 'Red', 'color': Colors.red},
-    {'name': 'Blue', 'color': Colors.blue},
-    {'name': 'Green', 'color': Colors.green},
-    {'name': 'Yellow', 'color': Colors.yellow},
-    {'name': 'Purple', 'color': Colors.purple},
-    {'name': 'Orange', 'color': Colors.orange},
-    {'name': 'Pink', 'color': Colors.pink},
-    {'name': 'Brown', 'color': Colors.brown},
-    
+    {'name': 'Red', 'color': Colors.red, 'example': 'Apple'},
+    {'name': 'Blue', 'color': Colors.blue, 'example': 'Sky'},
+    {'name': 'Green', 'color': Colors.green, 'example': 'Grass'},
+    {'name': 'Yellow', 'color': Colors.yellow, 'example': 'Banana'},
+    {'name': 'Purple', 'color': Colors.purple, 'example': 'Grape'},
+    {'name': 'Orange', 'color': Colors.orange, 'example': 'Carrot'},
+    {'name': 'Pink', 'color': Colors.pink, 'example': 'Flower'},
+    {'name': 'Brown', 'color': Colors.brown, 'example': 'Chocolate'},
   ];
 
-  late Map<String, dynamic> targetColor;
-  late List<Map<String, dynamic>> options;
-  bool isCorrect = false;
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  final ConfettiController _confettiController =
-      ConfettiController(duration: Duration(seconds: 2));
-  final FlutterTts _flutterTts = FlutterTts();
+  late Map<String, dynamic> currentColor;
+  bool showSuccess = false;
 
-  // Panda Animation
-  late AnimationController _animationController;
-  late Animation<double> _pandaBounce;
+  late AudioService _audio;
+  final ConfettiController _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
 
   @override
   void initState() {
     super.initState();
-    _generateNewChallenge();
-                                               
-    // Initialize Animation Controller
-    _animationController = AnimationController(
+    _audio = AudioService(context.read<ProgressService>());
+
+    _bounceController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600),
+    );
+    _bounceAnimation = Tween<double>(begin: 0, end: 25).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.elasticOut),
     );
 
-    // Define bounce animation
-    _pandaBounce = Tween<double>(begin: 0, end: 20).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    _generateNewColor();
   }
 
-  void _generateNewChallenge() {
+  void _generateNewColor() {
     setState(() {
-      targetColor = colors[Random().nextInt(colors.length)];
-      options = [...colors]..shuffle();
-      options = options.sublist(0, 3);
-      if (!options.contains(targetColor)) {
-        options[Random().nextInt(3)] = targetColor;
-      }
-      _speakInstruction();
+      currentColor = colors[Random().nextInt(colors.length)];
+      showSuccess = false;
     });
-  }
-                                                                                
-  void _speakInstruction() async {
-    await _flutterTts.setPitch(1.5);
-    await _flutterTts.speak("Can you tap the ${targetColor['name']} circle? ");
+    _speakColor();
   }
 
-  void _onColorTapped(Map<String, dynamic> selectedColor) async {
-    if (selectedColor == targetColor) {
-      setState(() => isCorrect = true);
-      await _audioPlayer.play(AssetSource('success.mp3'));
+  void _speakColor() {
+    _audio.speak(
+      "${currentColor['name']}! Like a big ${currentColor['example']}. Can you find the ${currentColor['name']} color?",
+      pitch: 1.3,
+      rate: 0.9,
+    );
+  }
+
+  void _onColorSelected(Map<String, dynamic> selected) async {
+    if (selected == currentColor) {
+      setState(() => showSuccess = true);
+      await context.read<ProgressService>().addStars('colors', 10);
+
+      await _audio.playSfx('success.mp3');
       _confettiController.play();
+      _bounceController.forward().then((_) => _bounceController.reverse());
 
-      // Start Panda Bounce
-      _animationController.forward().then((_) => _animationController.reverse());
-
-      Future.delayed(Duration(seconds: 2), () {
-        setState(() => isCorrect = false);
-        _generateNewChallenge();
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) _generateNewColor();
       });
     } else {
-      await _audioPlayer.play(AssetSource('out.mp3'));
-      _flutterTts.speak("Oops! Try again! ");
+      await _audio.playSfx('out.mp3');
+      await _audio.speak("Oops! That's ${selected['name']}. Try again!");
     }
   }
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    _audio.dispose();
     _confettiController.dispose();
-    _flutterTts.stop();
-    _animationController.dispose();
+    _bounceController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final stars = context.watch<ProgressService>().starsByTopic['colors'] ?? 0;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '🎨 Learn Colors!',
-          style: GoogleFonts.baloo2(
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.orangeAccent,
+        title: Text('🎨 Learn Colors', style: AppTheme.heading(fontSize: 26, color: Colors.white)),
+        backgroundColor: AppTheme.colors,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
-          // IconButton(
-          //   icon: Icon(Icons.exit_to_app, size: 30, color: Colors.white),
-          //   onPressed: () => Navigator.pop(context),
-          // ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                const Icon(Icons.star, color: Colors.yellow, size: 28),
+                const SizedBox(width: 6),
+                Text('$stars', style: AppTheme.title(fontSize: 22, color: Colors.white)),
+              ],
+            ),
+          ),
         ],
       ),
       body: Stack(
         children: [
-          // Animated Background
+          // Fun Background
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
-                // colors: [Colors.pink.shade100, Colors.blue.shade300],
-                  colors: [Colors.white, Colors.white],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFF3E0), Color(0xFFE3F2FD)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
           ),
 
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Panda Mascot with Animation
-                AnimatedBuilder(
-                  animation: _pandaBounce,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, -_pandaBounce.value),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Mascot
+                  AnimatedBuilder(
+                    animation: _bounceAnimation,
+                    builder: (context, child) => Transform.translate(
+                      offset: Offset(0, -_bounceAnimation.value),
                       child: child,
-                    );
-                  },
-                  // child: Text(
-                  //   isCorrect ? '🐼🎉' : '🐼🙃',
-                  //   style: TextStyle(fontSize: 100),
-                  // ),
-child: isCorrect
-    ? Image.asset(
-        'assets/happy.gif',
-        height: 150,
-        width: 150,
-      )
-    : SizedBox(height: 150, width: 150), // or a different widget
-
-
-                ),
-
-                SizedBox(height: 20),
-
-                // Instruction text
-                Text(
-                  ' Tap the ${targetColor['name']} Circle!',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.comicNeue(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    ),
+                    child: Image.asset('assets/bear.png', height: 110),
                   ),
-                ),
-                SizedBox(height: 20),
-              
-                // Color choices
-                Wrap(
-                  spacing: 20,
-                  runSpacing: 20,
-                  children: options.map((colorOption) {
-                    return GestureDetector(
-                      onTap: () => _onColorTapped(colorOption),
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 500),
-                        height: isCorrect ? 130 : 110,
-                        width: isCorrect ? 130 : 110,
-                        decoration: BoxDecoration(
-                          color: colorOption['color'],
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 4,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 10,
-                              spreadRadius: 5,
-                            )
-                          ],
+
+                  const SizedBox(height: 10),
+
+                  // Instruction
+                  Text(
+                    "Find the ${currentColor['name']} color!",
+                    style: AppTheme.title(fontSize: 32),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  Text(
+                    "Like a ${currentColor['example']}",
+                    style: AppTheme.body(fontSize: 22, color: Colors.black54),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Big Color Display (Target)
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 400),
+                    height: 180,
+                    width: 180,
+                    decoration: BoxDecoration(
+                      color: currentColor['color'],
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: currentColor['color'].withOpacity(0.6),
+                          blurRadius: 30,
+                          spreadRadius: 10,
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                      ],
+                    ),
+                  ),
 
-                SizedBox(height: 40),
+                  const SizedBox(height: 50),
 
-                // Reward Animation
-                isCorrect
-                    ? Column(
-                        children: [
-                          Text(
-                            '🎉 Yay! You got it! 🎉',
-                            style: GoogleFonts.baloo2(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
+                  // Color Choices Grid
+                  Wrap(
+                    spacing: 24,
+                    runSpacing: 24,
+                    alignment: WrapAlignment.center,
+                    children: colors.map((colorOption) {
+                      final bool isTarget = colorOption == currentColor;
+                      return GestureDetector(
+                        onTap: () => _onColorSelected(colorOption),
+                        child: AnimatedScale(
+                          scale: showSuccess && isTarget ? 1.15 : 1.0,
+                          duration: const Duration(milliseconds: 300),
+                          child: Container(
+                            height: 85,
+                            width: 85,
+                            decoration: BoxDecoration(
+                              color: colorOption['color'],
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isTarget ? Colors.white : Colors.transparent,
+                                width: 6,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(height: 10),
-                          // Icon(Icons.star, color: Colors.yellow, size: 60),
-                        ],
-                      )
-                    : SizedBox(),
+                        ),
+                      );
+                    }).toList(),
+                  ),
 
-                SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
-                // Restart Button
+                  // Success Message
+                  if (showSuccess)
+                    Column(
+                      children: [
+                        Text(
+                          '🎉 Amazing! That\'s ${currentColor['name']} 🎉',
+                          style: AppTheme.title(fontSize: 28, color: Colors.green),
+                        ),
+                        const SizedBox(height: 8),
+                        Text('+10 Stars', style: AppTheme.title(fontSize: 20, color: Colors.orange)),
+                      ],
+                    ),
 
-Container(
-  decoration: BoxDecoration(
-    gradient: LinearGradient(
-      colors: [Colors.purpleAccent, Colors.orangeAccent],
-    ),
-    borderRadius: BorderRadius.circular(30),
-    boxShadow: [
-      BoxShadow(color: Colors.deepPurple, blurRadius: 10, offset: Offset(2, 4)),
-    ],
-  ),
-  child: MaterialButton(
-    onPressed: _generateNewChallenge,
-    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-    child: Text(
-      '✨ Try Again!',
-      style: GoogleFonts.balooBhai2(
-        fontSize: 22,
-        color: Colors.white,
-      ),
-    ),
-  ),
-),
-
-
-
-              ],
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
 
-     
+          // Confetti
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+              particleDrag: 0.05,
+              emissionFrequency: 0.05,
+              numberOfParticles: 40,
+              gravity: 0.1,
+            ),
+          ),
         ],
       ),
     );

@@ -1,36 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/animation.dart';
+import 'package:provider/provider.dart';
+import 'package:kids_learning_app/services/progress_service.dart';
+import 'package:kids_learning_app/services/audio_service.dart';
+import 'package:kids_learning_app/theme/app_theme.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
-  final Map<String, String> animal;
+  final List<Map<String, String>> animals;
+  final int initialIndex;
 
-  AnimalDetailScreen({required this.animal});
+  const AnimalDetailScreen({super.key, required this.animals, required this.initialIndex});
 
   @override
-  _AnimalDetailScreenState createState() => _AnimalDetailScreenState();
+  State<AnimalDetailScreen> createState() => _AnimalDetailScreenState();
 }
 
 class _AnimalDetailScreenState extends State<AnimalDetailScreen> with SingleTickerProviderStateMixin {
+  late final PageController _pageController;
+  late AudioService _audio;
+  late int _currentIndex;
+
   late AnimationController _controller;
-  late Animation _scaleAnimation;
-  late Animation _colorAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: 1),
-    )..repeat(reverse: true); // Repeat the animation for a continuous effect
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+    _audio = AudioService(context.read<ProgressService>());
 
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat(reverse: true);
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
     _colorAnimation = ColorTween(begin: Colors.orange, end: Colors.pink).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _announce(_currentIndex));
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _audio.dispose();
+    _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _announce(int index) async {
+    final animal = widget.animals[index];
+    final name = animal['name']!;
+    await _audio.speak('$name. ${_getAnimalText(name)}');
+    if (!mounted) return;
+
+    final progress = context.read<ProgressService>();
+    final key = 'animal_$name';
+    if (!progress.hasPracticedToday(key)) {
+      await progress.markPracticedToday(key);
+      await progress.addStars('animals', 5);
+    }
+  }
+
+  void _onPageChanged(int index) {
+    setState(() => _currentIndex = index);
+    _announce(index);
   }
 
   @override
@@ -38,88 +69,63 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with SingleTick
     return Scaffold(
       backgroundColor: Colors.deepPurple[50],
       appBar: AppBar(
-        title: Text(
-          'Meet the ${widget.animal['name']}!',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.deepPurpleAccent,
+        title: Text('Meet the Animals!', style: AppTheme.heading(fontSize: 22, color: Colors.white)),
+        backgroundColor: AppTheme.animals,
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Fun Animated Animal Emoji with increased size
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Transform.scale(
+      body: PageView.builder(
+        controller: _pageController,
+        itemCount: widget.animals.length,
+        onPageChanged: _onPageChanged,
+        itemBuilder: (context, index) {
+          final animal = widget.animals[index];
+          return SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) => Transform.scale(
                     scale: _scaleAnimation.value,
-                    child: AnimatedSwitcher(
-                      duration: Duration(seconds: 1),
-                      child: Text(
-                        widget.animal['emoji']!,
-                        style: TextStyle(
-                          fontSize: 200,  // Increased size for visibility
-                          color: _colorAnimation.value,
-                        ),
-                        key: ValueKey<String>(widget.animal['name']!),
-                      ),
+                    child: Text(
+                      animal['emoji']!,
+                      style: TextStyle(fontSize: 180, color: index == _currentIndex ? _colorAnimation.value : null),
                     ),
-                  );
-                },
-              ),
-              SizedBox(height: 20),
-              // Fun, Simple Details
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hello! I am a ${widget.animal['name']}!',
-                      style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.deepPurpleAccent),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      _getAnimalText(widget.animal['name']!),
-                      style: TextStyle(fontSize: 22, color: Colors.deepPurple),
-                    ),
-                    SizedBox(height: 20),
-                    // Fun Playful Button
-                    ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(_getAnimalSound(widget.animal['name']!)),
-                          backgroundColor: Colors.orange,
-                        ));
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: Text(
-                        'Let\'s See More About Me!',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    // Swipe Interaction for Next Animal
-                    _AnimalSwipeWidget(),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Hello! I am a ${animal['name']}!', style: AppTheme.title(fontSize: 30, color: AppTheme.animals)),
+                      const SizedBox(height: 10),
+                      Text(_getAnimalText(animal['name']!), style: AppTheme.body(fontSize: 22)),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _audio.speak(_getAnimalSound(animal['name']!)),
+                          icon: const Icon(Icons.volume_up),
+                          style: AppTheme.pillButton(AppTheme.animals),
+                          label: const Text('Hear my sound!', style: TextStyle(fontSize: 18)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Text('Swipe left or right to meet another animal!', style: AppTheme.body(fontSize: 14, color: Colors.black45)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  // Return dynamic text based on animal type
   String _getAnimalText(String animalName) {
     switch (animalName.toLowerCase()) {
       case 'lion':
@@ -135,97 +141,18 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with SingleTick
     }
   }
 
-  // Return playful sound/interaction text based on animal type
   String _getAnimalSound(String animalName) {
     switch (animalName.toLowerCase()) {
       case 'lion':
-        return 'Roar! 🦁';
+        return 'Roar!';
       case 'elephant':
-        return 'Trumpet sound! 🐘';
+        return 'Trumpet sound!';
       case 'tiger':
-        return 'Grrr! 🐅';
+        return 'Grrr!';
       case 'rabbit':
-        return 'Hop Hop! 🐰';
+        return 'Hop Hop!';
       default:
         return 'I make a fun sound!';
     }
-  }
-}
-
-class _AnimalSwipeWidget extends StatefulWidget {
-  @override
-  __AnimalSwipeWidgetState createState() => __AnimalSwipeWidgetState();
-}
-
-class __AnimalSwipeWidgetState extends State<_AnimalSwipeWidget> {
-  // This will simulate the swipe functionality
-  late PageController _pageController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onHorizontalDragUpdate: (details) {
-        if (details.primaryDelta! > 0) {
-          // Swipe left to go to next animal
-          _pageController.animateToPage(1, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
-        } else {
-          // Swipe right to go to previous animal
-          _pageController.animateToPage(0, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
-        }
-      },
-      child: PageView(
-        controller: _pageController,
-        scrollDirection: Axis.horizontal,
-        children: [
-          // Example of two pages with animals, more can be added
-          _AnimalDetailCard(animalName: 'Lion', animalEmoji: '🦁'),
-          _AnimalDetailCard(animalName: 'Elephant', animalEmoji: '🐘'),
-        ],
-      ),
-    );
-  }
-}
-
-class _AnimalDetailCard extends StatelessWidget {
-  final String animalName;
-  final String animalEmoji;
-
-  _AnimalDetailCard({required this.animalName, required this.animalEmoji});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            animalName,
-            style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 20),
-          Text(
-            animalEmoji,
-            style: TextStyle(fontSize: 150),
-          ),
-          SizedBox(height: 20),
-          Text(
-            'Swipe left or right to see more animals!',
-            style: TextStyle(fontSize: 18),
-          ),
-        ],
-      ),
-    );
   }
 }

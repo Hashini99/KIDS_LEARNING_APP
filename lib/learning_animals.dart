@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:kids_learning_app/animal_detail_screen.dart';
-
+import 'package:kids_learning_app/theme/app_theme.dart';
 
 class AnimalLearningScreen extends StatelessWidget {
-  // List of animals with emojis
-  final List<Map<String, String>> animals = [
+  const AnimalLearningScreen({super.key});
+
+  static const List<Map<String, String>> animals = [
     {'name': 'Lion', 'emoji': '🦁'},
     {'name': 'Elephant', 'emoji': '🐘'},
     {'name': 'Cat', 'emoji': '🐱'},
@@ -30,16 +31,13 @@ class AnimalLearningScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Learn Animals',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        backgroundColor: Colors.deepPurpleAccent,
+        title: Text('Learn Animals', style: AppTheme.heading(fontSize: 26, color: Colors.white)),
+        backgroundColor: AppTheme.animals,
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
@@ -48,26 +46,22 @@ class AnimalLearningScreen extends StatelessWidget {
           itemBuilder: (context, index) {
             return GestureDetector(
               onTap: () {
-                // Navigate to animal detail screen when tapped
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AnimalDetailScreen(animal: animals[index]),
+                    builder: (context) => AnimalDetailScreen(animals: animals, initialIndex: index),
                   ),
                 );
               },
               child: AnimatedContainer(
-                duration: Duration(seconds: 1),
+                duration: const Duration(seconds: 1),
                 curve: Curves.elasticOut,
                 decoration: BoxDecoration(
-                  color: Colors.orange,
+                  color: AppTheme.animals,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Center(
-                  child: Text(
-                    animals[index]['emoji']!,
-                    style: TextStyle(fontSize: 60),
-                  ),
+                  child: Text(animals[index]['emoji']!, style: const TextStyle(fontSize: 60)),
                 ),
               ),
             );

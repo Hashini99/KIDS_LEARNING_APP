@@ -21,6 +21,8 @@ dependencies:
   flutter_tts: ^4.2.2
   google_fonts: ^6.2.1
   lottie: ^3.3.1
+  shared_preferences: ^2.3.3
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
@@ -41,5 +43,4 @@ flutter:
     - assets/out.mp3
     - assets/kids_bg.png
     - assets/happy.gif
-    - assets/story1.png
    

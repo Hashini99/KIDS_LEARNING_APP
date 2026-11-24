@@ -1,49 +1,38 @@
-
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-void main() => runApp(NumberLearningApp());
-
-class NumberLearningApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Kids Number Learning',
-      debugShowCheckedModeBanner: false,
-      home: NumberLearningScreen(),
-    );
-  }
-}
+import 'package:provider/provider.dart';
+import 'package:kids_learning_app/services/progress_service.dart';
+import 'package:kids_learning_app/services/audio_service.dart';
+import 'package:kids_learning_app/theme/app_theme.dart';
 
 class NumberLearningScreen extends StatefulWidget {
+  const NumberLearningScreen({super.key});
+
   @override
-  _NumberLearningScreenState createState() => _NumberLearningScreenState();
+  State<NumberLearningScreen> createState() => _NumberLearningScreenState();
 }
 
 class _NumberLearningScreenState extends State<NumberLearningScreen> {
-  final FlutterTts flutterTts = FlutterTts();
+  late AudioService _audio;
   int selectedNumber = 1;
-  List<Offset?> points = []; // Points for drawing the number
+  List<Offset?> points = [];
 
   @override
   void initState() {
     super.initState();
-    _configureTts();
+    _audio = AudioService(context.read<ProgressService>());
     _speakNumber();
   }
 
-  void _configureTts() {
-    flutterTts.setLanguage("en-US");
-    flutterTts.setPitch(1.2);
-    flutterTts.setSpeechRate(0.4);
+  @override
+  void dispose() {
+    _audio.dispose();
+    super.dispose();
   }
 
   Future<void> _speakNumber() async {
-    String emojiName = getEmojiName(selectedNumber);
-    String spokenText =
-        '$selectedNumber ${emojiName}${selectedNumber > 1 ? 's' : ''}';
-    await flutterTts.speak(spokenText);
+    final emojiName = getEmojiName(selectedNumber);
+    final spokenText = '$selectedNumber $emojiName${selectedNumber > 1 ? 's' : ''}';
+    await _audio.speak(spokenText, pitch: 1.2, rate: 0.4);
   }
 
   String getEmojiForNumber(int number) {
@@ -100,178 +89,133 @@ class _NumberLearningScreenState extends State<NumberLearningScreen> {
     }
   }
 
-  void _onNumberTap(int number) {
+  void _onNumberTap(int number) async {
     setState(() {
       selectedNumber = number;
+      points.clear();
     });
     _speakNumber();
+
+    final progress = context.read<ProgressService>();
+    final key = 'number_$number';
+    if (!progress.hasPracticedToday(key)) {
+      await progress.markPracticedToday(key);
+      await progress.addStars('numbers', 5);
+    }
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    setState(() {
-      points.add(details.localPosition);
-    });
+    setState(() => points.add(details.localPosition));
   }
 
   void _onPanEnd(DragEndDetails details) {
-    points.add(null); // End the drawing stroke
+    points.add(null);
   }
 
   void _clearDrawing() {
-    setState(() {
-      points.clear();
-    });
+    setState(() => points.clear());
   }
 
   @override
   Widget build(BuildContext context) {
+    final stars = context.watch<ProgressService>().starsByTopic['numbers'] ?? 0;
+
     return Scaffold(
-      backgroundColor: Colors.pink[50],
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
-        title: Text(
-          'Learn Numbers',
-          style: GoogleFonts.baloo2(fontSize: 28),
-        ),
-        centerTitle: true,
+        backgroundColor: AppTheme.numbers,
+        title: Text('Learn Numbers', style: AppTheme.heading(fontSize: 26, color: Colors.white)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(children: [
+              const Icon(Icons.star, color: Colors.yellow, size: 24),
+              const SizedBox(width: 4),
+              Text('$stars', style: AppTheme.title(fontSize: 18, color: Colors.white)),
+            ]),
+          ),
+        ],
       ),
       body: Column(
         children: [
-          // Scrollable content area (Number selection, buttons, etc.)
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SizedBox(height: 20),
-                  Text(
-                    'Tap a number!',
-                    style: GoogleFonts.comicNeue(fontSize: 24, fontWeight: FontWeight.w600),
-                  ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 20),
+                  Text('Tap a number!', style: AppTheme.body(fontSize: 24, weight: FontWeight.w600)),
+                  const SizedBox(height: 10),
                   Wrap(
                     spacing: 15,
                     runSpacing: 15,
                     children: List.generate(10, (index) {
-                      int num = index + 1;
+                      final num = index + 1;
                       return GestureDetector(
                         onTap: () => _onNumberTap(num),
                         child: CircleAvatar(
                           radius: 30,
-                          backgroundColor:
-                              selectedNumber == num ? Colors.blueAccent : Colors.pinkAccent,
-                          child: Text(
-                            '$num',
-                            style: TextStyle(fontSize: 22, color: Colors.white),
-                          ),
+                          backgroundColor: selectedNumber == num ? Colors.deepPurpleAccent : AppTheme.numbers,
+                          child: Text('$num', style: const TextStyle(fontSize: 22, color: Colors.white)),
                         ),
                       );
                     }),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: 30),
-                    padding: EdgeInsets.all(24),
+                    margin: const EdgeInsets.symmetric(horizontal: 30),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: Colors.pinkAccent, width: 4),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.pinkAccent.withOpacity(0.2),
-                            blurRadius: 10,
-                            offset: Offset(0, 5)),
-                      ],
+                      border: Border.all(color: AppTheme.numbers, width: 4),
+                      boxShadow: [BoxShadow(color: AppTheme.numbers.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5))],
                     ),
                     child: Column(
                       children: [
-                        Text(
-                          '$selectedNumber',
-                          style: GoogleFonts.baloo2(
-                            fontSize: 100,
-                            color: Colors.deepPurpleAccent,
-                          ),
-                        ),
-                        Text(
-                          getEmojiName(selectedNumber),
-                          style: GoogleFonts.comicNeue(
-                              fontSize: 28, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 10),
+                        Text('$selectedNumber', style: AppTheme.heading(fontSize: 100, color: Colors.deepPurpleAccent)),
+                        Text(getEmojiName(selectedNumber), style: AppTheme.body(fontSize: 28, weight: FontWeight.bold)),
+                        const SizedBox(height: 10),
                         Wrap(
                           spacing: 10,
                           runSpacing: 10,
                           alignment: WrapAlignment.center,
-                          children: List.generate(selectedNumber, (index) {
-                            return Text(
-                              getEmojiForNumber(selectedNumber),
-                              style: TextStyle(fontSize: 40),
-                            );
-                          }),
+                          children: List.generate(selectedNumber, (index) => Text(getEmojiForNumber(selectedNumber), style: const TextStyle(fontSize: 40))),
                         ),
-                        SizedBox(height: 20),
-                        Text(
-                          'Write the number below!',
-                          style: GoogleFonts.comicNeue(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 20),
+                        Text('Write the number below!', style: AppTheme.body(fontSize: 18, weight: FontWeight.bold)),
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: _speakNumber,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amberAccent,
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                      shape: StadiumBorder(),
-                      elevation: 4,
-                    ),
-                    icon: Icon(Icons.volume_up_rounded, color: Colors.black87),
-                    label: Text(
-                      "Hear Again!",
-                      style: TextStyle(fontSize: 20, color: Colors.black87),
-                    ),
+                    style: AppTheme.pillButton(Colors.amber.shade700),
+                    icon: const Icon(Icons.volume_up_rounded),
+                    label: const Text('Hear Again!', style: TextStyle(fontSize: 20)),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _clearDrawing,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      shape: StadiumBorder(),
-                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                    ),
-                    child: Text(
-                      'Clear Drawing',
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
+                    style: AppTheme.pillButton(Colors.redAccent),
+                    child: const Text('Clear Drawing', style: TextStyle(fontSize: 20)),
                   ),
                 ],
               ),
             ),
           ),
-          // Fixed drawing area at the bottom of the screen
           Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.pinkAccent, width: 2),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.pinkAccent.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: Offset(0, 5)),
-              ],
+              border: Border.all(color: AppTheme.numbers, width: 2),
+              boxShadow: [BoxShadow(color: AppTheme.numbers.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))],
             ),
-            margin: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+            margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
             child: GestureDetector(
               onPanUpdate: _onPanUpdate,
               onPanEnd: _onPanEnd,
-              child: CustomPaint(
-                size: Size(300, 150), // Fixed size for the drawing area
-                painter: NumberDrawingPainter(points),
-              ),
+              child: CustomPaint(size: const Size(300, 150), painter: NumberDrawingPainter(points)),
             ),
           ),
         ],
@@ -301,7 +245,5 @@ class NumberDrawingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
